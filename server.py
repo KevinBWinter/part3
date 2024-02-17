@@ -14,8 +14,16 @@ if len(sys.argv) != 3:
 
 try:
     port = int(sys.argv[1])
+    if port < 0 or port > 65535:
+        raise ValueError
 except ValueError:
     sys.stderr.write("ERROR: Invalid port number\n")
+    sys.exit(1)
+
+try:
+    file_dir = sys.argv[2]
+except ValueError:
+    sys.stderr.write("ERROR: Invalid file directory\n")
     sys.exit(1)
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,10 +34,10 @@ def handle_client(client_socket, connection_id):
     client_socket.sendall(b'accio\r\n')
     data = client_socket.recv(1024)
     if not data:
-        with open(f'{connection_id}.file', 'wb') as file:
+        with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
             file.write(b'ERROR')
     else:
-        with open(f'{connection_id}.file', 'wb') as file:
+        with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
             file.write(data)
     client_socket.close()
 
@@ -38,4 +46,5 @@ while True:
     client_socket, _ = server_socket.accept()
     connection_counter += 1
     threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
+
 
