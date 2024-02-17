@@ -5,36 +5,30 @@ import signal
 import sys
 import time
 
-
 connection_count = 0
-
 
 def handle_client(conn, addr):
     global connection_count
     connection_count += 1
     connection_id = connection_count
-    
+
     print(f"Connection {connection_id} from {addr}")
 
-    # Receive data from the client
-    data = conn.recv(1024)
     received_data = b""
     timeout = 10  # Timeout in seconds
     start_time = time.time()
 
-    while data:
-        received_data += data
-        # Set a timeout for receiving data
-        conn.settimeout(timeout - (time.time() - start_time))
+    while True:
         try:
             data = conn.recv(1024)
+            if not data:
+                break
+            received_data += data
+            start_time = time.time()
         except socket.timeout:
-            # Timeout reached, close the connection
             print(f"Connection {connection_id} timed out")
-            conn.close()
-            return
+            break
 
- 
     filename = f"{connection_id}.file"
     file_path = os.path.join(FILE_DIR, filename)
     with open(file_path, 'wb') as file:
@@ -42,7 +36,6 @@ def handle_client(conn, addr):
 
     print(f"File saved as {filename}")
     conn.close()
-
 
 def signal_handler(sig, frame):
     print("Exiting...")
