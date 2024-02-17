@@ -14,6 +14,9 @@ def handle_client(conn, addr):
 
     print(f"Connection {connection_id} from {addr}")
 
+    # Send 'accio' to the client
+    conn.sendall(b'accio')
+
     received_data = b""
     timeout = 10  # Timeout in seconds
     start_time = time.time()
@@ -67,3 +70,4 @@ if __name__ == "__main__":
     while True:
         conn, addr = server_socket.accept()
         threading.Thread(target=handle_client, args=(conn, addr)).start()
+
