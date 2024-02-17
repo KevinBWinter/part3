@@ -18,16 +18,19 @@ def handle_client(conn, addr):
     timeout = 10  # Timeout in seconds
     start_time = time.time()
 
-    while True:
-        try:
+    try:
+        while True:
             data = conn.recv(1024)
             if not data:
                 break
             received_data += data
             start_time = time.time()
-        except socket.timeout:
-            print(f"Connection {connection_id} timed out")
-            break
+    except socket.timeout:
+        print(f"Connection {connection_id} timed out")
+        with open(f"{FILE_DIR}/{connection_id}.file", 'wb') as file:
+            file.write(b"ERROR")
+        conn.close()
+        return
 
     filename = f"{connection_id}.file"
     file_path = os.path.join(FILE_DIR, filename)
@@ -48,6 +51,10 @@ if __name__ == "__main__":
 
     PORT = int(sys.argv[1])
     FILE_DIR = sys.argv[2]
+
+    if PORT < 0 or PORT > 65535:
+        sys.stderr.write("ERROR: Invalid port number\n")
+        sys.exit(1)
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
